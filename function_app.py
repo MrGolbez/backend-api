@@ -3,7 +3,7 @@ import logging
 import os
 
 import azure.functions as func
-from azure.core.exceptions import ResourceNotFoundError
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from azure.data.tables import TableClient, UpdateMode
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
@@ -42,6 +42,12 @@ def GetResumeCounter(req: func.HttpRequest) -> func.HttpResponse:
             conn_str=connection_string,
             table_name=table_name,
         )
+
+        try:
+            table_client.create_table()
+            logging.info("Created table: %s", table_name)
+        except ResourceExistsError:
+            logging.info("Table already exists: %s", table_name)
 
         try:
             entity = table_client.get_entity(

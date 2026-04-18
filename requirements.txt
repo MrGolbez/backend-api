@@ -4,3 +4,4 @@
 
 azure-functions
 azure-data-tables==12.6.0
+pytest

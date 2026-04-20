@@ -100,7 +100,11 @@ The frontend calls this API from the static site and displays the returned count
 
 ## Infrastructure As Code
 
-The Azure infrastructure is modeled in the project-level `infra/` folder using Bicep.
+The Azure infrastructure is modeled in the public IaC repo:
+
+```text
+https://github.com/MrGolbez/cloud-resume-infra
+```
 
 The current Bicep modules include:
 

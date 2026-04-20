@@ -1,17 +1,19 @@
-# Backend API
+# Cloud Resume Backend API
 
-This folder contains the Azure Functions backend for the Cloud Resume Challenge. It provides a small HTTP API that updates and returns the website visitor count using Azure Table Storage semantics through Cosmos DB Table API.
+Azure Functions backend for my Azure Cloud Resume Challenge portfolio project.
 
-## Project Overview
+This repo contains the Python HTTP API that powers the live visitor counter on `https://martycrane.com`.
 
-The backend is intentionally simple:
+## What This Demonstrates
 
-- Azure Functions with Python
-- One HTTP-triggered endpoint
-- Cosmos DB Table API access through `azure-data-tables`
-- Configuration supplied through environment variables
-
-Its current purpose is to support the resume website visitor counter while keeping the backend logic easy to understand and extend.
+- Python Azure Functions
+- HTTP-triggered serverless API design
+- Cosmos DB Table API integration through `azure-data-tables`
+- Environment-based configuration
+- CORS handling for browser requests
+- Pytest coverage for backend behavior
+- GitHub Actions CI/CD for testing and deployment
+- Production app settings kept out of source control
 
 ## API
 
@@ -27,13 +29,13 @@ Example response:
 }
 ```
 
-Current flow:
+Request flow:
 
 1. Receive an HTTP `GET` request
-2. Read the current row from the configured table
+2. Read the current visitor counter row from Cosmos DB Table API
 3. Increment the `Count` value
 4. Upsert the updated entity
-5. Return the new value as JSON
+5. Return the new count as JSON
 
 The function also supports `OPTIONS` requests for CORS preflight handling.
 
@@ -46,21 +48,25 @@ The Function uses these environment variables:
 
 For local development, those values are read from `local.settings.json`.
 
-For Azure deployments, they should be set in the Function App application settings.
+For Azure deployments, they are configured as Function App application settings.
+
+Do not commit real connection strings or local secrets.
 
 ## Files
 
 - `function_app.py`: Azure Function definition and visitor counter logic
 - `requirements.txt`: Python dependencies
 - `host.json`: Function host configuration
-- `local.settings.json`: Local-only development settings placeholder
+- `pytest.ini`: Pytest configuration
+- `tests/test_function_app.py`: Backend tests
+- `.github/workflows/`: Backend CI/CD workflow
 
 ## Local Run
 
 Start the Function locally from this folder:
 
 ```powershell
-cd c:\Users\mcrane\Documents\Cloud_Resume_Challenge\backend-api
+cd C:\Users\mcrane\Documents\Cloud_Resume_Challenge\backend-api
 func start
 ```
 
@@ -70,17 +76,45 @@ Test the API:
 Invoke-RestMethod http://localhost:7071/api/GetResumeCounter
 ```
 
-## Infrastructure as Code Roadmap
+## Tests
 
-Infrastructure as Code has not been added yet, but this backend is being structured with that next step in mind.
+Run tests locally:
 
-Planned IaC additions include:
+```powershell
+pytest
+```
 
-- Azure Function App deployment configuration
-- Hosting plan definition
-- Application settings and environment variable wiring
-- Cosmos DB account and Table API table provisioning
-- Storage resources required by the Function App
-- Deployment automation to make the backend reproducible across environments
+The GitHub Actions workflow runs backend tests automatically before deployment.
 
-The goal is for this backend to evolve from a manually configured project into a repeatable deployment managed through templates and source control.
+## Deployment
+
+The backend deploys to Azure Functions through GitHub Actions.
+
+Production resources:
+
+- Azure Function App: `martycrane-resume-api`
+- Cosmos DB Table API account: `martycrane-resume-db`
+- Counter table: `Counter`
+
+The frontend calls this API from the static site and displays the returned count on page load.
+
+## Infrastructure As Code
+
+The Azure infrastructure is modeled in the project-level `infra/` folder using Bicep.
+
+The current Bicep modules include:
+
+- Function App Flex Consumption plan
+- Linux Python Function App
+- Function runtime/deployment storage
+- Cosmos DB Table API account
+- Counter table
+- App settings generated during deployment
+
+The Bicep currently matches the existing manually deployed production resources and has been validated with `az bicep build`. The next IaC step is reviewing detailed Azure `what-if` output before applying the template to production.
+
+## Notes
+
+- The current visitor counter update is intentionally simple and not fully atomic under high concurrency.
+- For this portfolio use case, that tradeoff is acceptable and documented.
+- A future hardening step could use managed identity and RBAC instead of connection-string based access.
